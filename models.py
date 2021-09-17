@@ -63,6 +63,7 @@ class AmazonSearcher:
 
             except RemoteDisconnected:
                 print('RemoteDisconected. Will retry after a few secs.')
+                continue
 
 
             if r.status_code == 200:
