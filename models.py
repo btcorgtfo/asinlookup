@@ -2,7 +2,7 @@ import requests
 import urllib
 import time
 import datetime
-
+from http.client import RemoteDisconnected
 
 class AmazonSearcher:
     AMAZON_URLS = {'DE': 'https://www.amazon.de/gp/product/',
@@ -56,8 +56,14 @@ class AmazonSearcher:
 
         while retry <= max_retries:
             print(f"{datetime.datetime.now()}: {retry}. try")
-            r = requests.get('http://api.scraperapi.com',
-                             params=self.payload(asin))
+
+            try:
+                r = requests.get('http://api.scraperapi.com',
+                                 params=self.payload(asin))
+
+            except RemoteDisconnected:
+                print('RemoteDisconected. Will retry after a few secs.')
+
 
             if r.status_code == 200:
                 if len(r.text) != 0:  # some time the .text is empty, html code == 200
@@ -70,6 +76,7 @@ class AmazonSearcher:
                 # page not found on the marketplace
                 return str()
             else:
+                print(f"status code: {r.status_code}")
                 retry += 1
                 time.sleep(self.TIME_TO_SLEEP)
 
@@ -106,6 +113,6 @@ def check_html_for_str(html: str, search_str: str) -> bool:
     :return:
     """
     if search_str in html:
-        return False
-    else:
         return True
+    else:
+        return False
